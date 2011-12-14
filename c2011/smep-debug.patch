@@ -1,0 +1,99 @@
+diff --git a/arch/x86/mm/fault.c b/arch/x86/mm/fault.c
+index 2dbf6bf..0d94f02 100644
+--- a/arch/x86/mm/fault.c
++++ b/arch/x86/mm/fault.c
+@@ -561,6 +561,8 @@ static int is_f00f_bug(struct pt_regs *regs, unsigned long address)
+ 
+ static const char nx_warning[] = KERN_CRIT
+ "kernel tried to execute NX-protected page - exploit attempt? (uid: %d)\n";
++static const char smep_warning[] = KERN_CRIT
++"kernel tried to execute user page - exploit attempt? (uid: %d)\n";
+ 
+ static void
+ show_fault_oops(struct pt_regs *regs, unsigned long error_code,
+@@ -574,8 +576,12 @@ show_fault_oops(struct pt_regs *regs, unsigned long error_code,
+ 
+ 		pte_t *pte = lookup_address(address, &level);
+ 
+-		if (pte && pte_present(*pte) && !pte_exec(*pte))
+-			printk(nx_warning, current_uid());
++		if (pte && pte_present(*pte)) {
++			if (!pte_exec(*pte))
++				printk(nx_warning, current_uid());
++			else				
++				printk(smep_warning, current_uid());
++		}
+ 	}
+ 
+ 	printk(KERN_ALERT "BUG: unable to handle kernel ");
+@@ -860,12 +866,14 @@ mm_fault_error(struct pt_regs *regs, unsigned long error_code,
+ 	return 1;
+ }
+ 
+-static int spurious_fault_check(unsigned long error_code, pte_t *pte)
++static int spurious_fault_check(unsigned long error_code, pte_t *pte,
++				unsigned pte_access)
+ {
+ 	if ((error_code & PF_WRITE) && !pte_write(*pte))
+ 		return 0;
+ 
+-	if ((error_code & PF_INSTR) && !pte_exec(*pte))
++	if ((error_code & PF_INSTR) && (!pte_exec(*pte) ||
++					(pte_access & _PAGE_USER)))
+ 		return 0;
+ 
+ 	return 1;
+@@ -891,6 +899,7 @@ spurious_fault(unsigned long error_code, unsigned long address)
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+ 	int ret;
++	unsigned pte_access = 1ULL << 2;
+ 
+ 	/* Reserved-bit violation or user access to kernel space? */
+ 	if (error_code & (PF_USER | PF_RSVD))
+@@ -899,20 +908,23 @@ spurious_fault(unsigned long error_code, unsigned long address)
+ 	pgd = init_mm.pgd + pgd_index(address);
+ 	if (!pgd_present(*pgd))
+ 		return 0;
++	pte_access &= pgd_flags(*pgd);
+ 
+ 	pud = pud_offset(pgd, address);
+ 	if (!pud_present(*pud))
+ 		return 0;
++	pte_access &= pud_flags(*pud);
+ 
+ 	if (pud_large(*pud))
+-		return spurious_fault_check(error_code, (pte_t *) pud);
++		return spurious_fault_check(error_code, (pte_t *) pud, pte_access);
+ 
+ 	pmd = pmd_offset(pud, address);
+ 	if (!pmd_present(*pmd))
+ 		return 0;
++	pte_access &= pmd_flags(*pmd);
+ 
+ 	if (pmd_large(*pmd))
+-		return spurious_fault_check(error_code, (pte_t *) pmd);
++		return spurious_fault_check(error_code, (pte_t *) pmd, pte_access);
+ 
+ 	/*
+ 	 * Note: don't use pte_present() here, since it returns true
+@@ -923,8 +935,9 @@ spurious_fault(unsigned long error_code, unsigned long address)
+ 	pte = pte_offset_kernel(pmd, address);
+ 	if (!(pte_flags(*pte) & _PAGE_PRESENT))
+ 		return 0;
++	pte_access &= pte_flags(*pte);
+ 
+-	ret = spurious_fault_check(error_code, pte);
++	ret = spurious_fault_check(error_code, pte, pte_access);
+ 	if (!ret)
+ 		return 0;
+ 
+@@ -932,7 +945,7 @@ spurious_fault(unsigned long error_code, unsigned long address)
+ 	 * Make sure we have permissions in PMD.
+ 	 * If not, then there's a bug in the page tables:
+ 	 */
+-	ret = spurious_fault_check(error_code, (pte_t *) pmd);
++	ret = spurious_fault_check(error_code, (pte_t *) pmd, pte_access);
+ 	WARN_ONCE(!ret, "PMD has incorrect permission bits\n");
+ 
+ 	return ret;
