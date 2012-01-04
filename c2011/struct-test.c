@@ -1,5 +1,5 @@
 /* 
- * This sample shows defination and initiation of a struct and a union in a struct. using GCC
+ * This sample shows definition and initiation of a struct and a union in a struct. using GCC
  * Author: Jay Ren
 */
 
