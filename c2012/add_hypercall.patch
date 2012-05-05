@@ -1,0 +1,74 @@
+# HG changeset patch
+# Author: Jay <smile665@gmail.com>
+# Date 2012-05-05
+# based on xen-unstable changeset:   25259:0f53540494f7
+Add your own hypercall.
+
+diff -r 0f53540494f7 xen/arch/x86/traps.c
+--- a/xen/arch/x86/traps.c	Fri May 04 11:18:48 2012 +0100
++++ b/xen/arch/x86/traps.c	Sat May 05 18:36:38 2012 -0400
+@@ -3850,6 +3850,20 @@
+     return -EINVAL;
+ }
+ 
++int do_hello_hypercall(char* str)
++{
++    printk("------------------------------\n");
++    printk("Begin: hello hypercall.\n");
++    if(str != NULL)
++        printk("Hello, %s.\n", str);
++    else
++        printk("Hello, the unkown.\n");
++    printk("End: hello hypercall.\n");
++    printk("----demoed by Jay.----\n");
++    printk("------------------------------\n");
++    return 0;
++}
++
+ /*
+  * Local variables:
+  * mode: C
+diff -r 0f53540494f7 xen/arch/x86/x86_64/entry.S
+--- a/xen/arch/x86/x86_64/entry.S	Fri May 04 11:18:48 2012 +0100
++++ b/xen/arch/x86/x86_64/entry.S	Sat May 05 18:36:38 2012 -0400
+@@ -697,6 +697,7 @@
+         .quad do_domctl
+         .quad do_kexec_op
+         .quad do_tmem_op
++        .quad do_hello_hypercall
+         .rept __HYPERVISOR_arch_0-((.-hypercall_table)/8)
+         .quad do_ni_hypercall
+         .endr
+@@ -745,6 +746,7 @@
+         .byte 1 /* do_domctl            */
+         .byte 2 /* do_kexec             */
+         .byte 1 /* do_tmem_op           */
++        .byte 1 /* do_hello_hypercall   */
+         .rept __HYPERVISOR_arch_0-(.-hypercall_args_table)
+         .byte 0 /* do_ni_hypercall      */
+         .endr
+diff -r 0f53540494f7 xen/include/asm-x86/hypercall.h
+--- a/xen/include/asm-x86/hypercall.h	Fri May 04 11:18:48 2012 +0100
++++ b/xen/include/asm-x86/hypercall.h	Sat May 05 18:36:38 2012 -0400
+@@ -94,6 +94,10 @@
+ do_kexec(
+     unsigned long op, unsigned arg1, XEN_GUEST_HANDLE(void) uarg);
+ 
++extern int
++do_hello_hypercall(
++    char* str);
++
+ #ifdef __x86_64__
+ 
+ extern long
+diff -r 0f53540494f7 xen/include/public/xen.h
+--- a/xen/include/public/xen.h	Fri May 04 11:18:48 2012 +0100
++++ b/xen/include/public/xen.h	Sat May 05 18:36:38 2012 -0400
+@@ -100,6 +100,7 @@
+ #define __HYPERVISOR_kexec_op             37
+ #define __HYPERVISOR_tmem_op              38
+ #define __HYPERVISOR_xc_reserved_op       39 /* reserved for XenClient */
++#define __HYPERVISOR_hello_hypercall      39 /* add this temporarily; 39 is not used before */
+ 
+ /* Architecture-specific hypercall definitions. */
+ #define __HYPERVISOR_arch_0               48
