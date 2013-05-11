@@ -1,0 +1,15 @@
+diff --git a/xen/include/asm-x86/hvm/vmx/vmcs.h b/xen/include/asm-x86/hvm/vmx/vmcs.h
+index ba02221..a269fbf 100644
+--- a/xen/include/asm-x86/hvm/vmx/vmcs.h
++++ b/xen/include/asm-x86/hvm/vmx/vmcs.h
+@@ -253,8 +253,7 @@ extern bool_t cpu_has_vmx_ins_outs_instr_info;
+     (vmx_secondary_exec_control & SECONDARY_EXEC_APIC_REGISTER_VIRT)
+ #define cpu_has_vmx_virtual_intr_delivery \
+     (vmx_secondary_exec_control & SECONDARY_EXEC_VIRTUAL_INTR_DELIVERY)
+-#define cpu_has_vmx_vmcs_shadowing \
+-    (vmx_secondary_exec_control & SECONDARY_EXEC_ENABLE_VMCS_SHADOWING)
++#define cpu_has_vmx_vmcs_shadowing 0
+ 
+ #define VMCS_RID_TYPE_MASK              0x80000000
+ 
+
