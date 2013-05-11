@@ -1,0 +1,22 @@
+diff --git a/xen/arch/x86/hvm/vmx/vvmx.c b/xen/arch/x86/hvm/vmx/vvmx.c
+index bb7688f..8474734 100644
+--- a/xen/arch/x86/hvm/vmx/vvmx.c
++++ b/xen/arch/x86/hvm/vmx/vvmx.c
+@@ -1645,6 +1645,8 @@ int nvmx_handle_vmread(struct cpu_user_regs *regs)
+     u64 value = 0;
+     int rc;
+ 
++    gdprintk(XENLOG_ERR, "R:You can't see this if VMCS shadowing enabled.\n");
++
+     rc = decode_vmx_inst(regs, &decode, NULL, 0);
+     if ( rc != X86EMUL_OKAY )
+         return rc;
+@@ -1686,6 +1688,8 @@ int nvmx_handle_vmwrite(struct cpu_user_regs *regs)
+     else if ( vmcs_encoding == IO_BITMAP_B || 
+               vmcs_encoding == IO_BITMAP_B_HIGH )
+         __map_io_bitmap (v, IO_BITMAP_B);
++    else
++        gdprintk(XENLOG_ERR, "W:You can't see this if VMCS shadowing enabled.\n");
+ 
+     if ( vmcs_encoding == MSR_BITMAP || vmcs_encoding == MSR_BITMAP_HIGH )
+         __map_msr_bitmap(v);
