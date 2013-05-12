@@ -1,0 +1,20 @@
+Name: Alex Liu
+Education Background
+    2003-2007 Bachelor, Sun-Yat-Sen University 
+    2007-now  Postgraduate, South China University of Technology
+
+Position: Finance
+Award
+	2005       Second honor scholarship
+	Mar, 2007  First prize of MSRA student project 
+        May, 2007  Microsoft Imaging cup top 20
+Experience
+        Project network packor
+		design and implement a network survellance system.
+		work as project leader
+	Project WICO
+		a P2P knowledge sharing system base web2.0
+		
+Technique
+	C++/C#/.NET framework 
+	winCE, web2.0

@@ -1,0 +1,15 @@
+Name: Donald Tseng
+Education Background
+    2003-2007 Bachelor, South China University of Technology 
+    2007-now  Postgraduate, South China University of Technology
+
+Position: Finance
+Award
+	2005  First honor scholarship
+	2006  English speech contest First Prize
+Experience
+        2005 summer -- intern at Microsoft Research Asia
+	2003-2004      Technical Director of Radio Fans Club
+Technique
+	3 years C++, linux
+	Database, computer network, DirectShow
