@@ -1,0 +1,17 @@
+diff --git a/xen/arch/x86/hvm/vmx/vmcs.c b/xen/arch/x86/hvm/vmx/vmcs.c
+index de9f592..7a5bc1a 100644
+--- a/xen/arch/x86/hvm/vmx/vmcs.c
++++ b/xen/arch/x86/hvm/vmx/vmcs.c
+@@ -196,10 +196,11 @@ static int vmx_init_vmcs_config(void)
+          * "APIC Register Virtualization" and "Virtual Interrupt Delivery"
+          * can be set only when "use TPR shadow" is set
+          */
+-        if ( _vmx_cpu_based_exec_control & CPU_BASED_TPR_SHADOW )
++        /*if ( _vmx_cpu_based_exec_control & CPU_BASED_TPR_SHADOW )
+             opt |= SECONDARY_EXEC_APIC_REGISTER_VIRT |
+                    SECONDARY_EXEC_VIRTUAL_INTR_DELIVERY |
+                    SECONDARY_EXEC_VIRTUALIZE_X2APIC_MODE;
++	*/
+ 
+ 
+         _vmx_secondary_exec_control = adjust_vmx_controls(
