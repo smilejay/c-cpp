@@ -1,0 +1,20 @@
+diff --git a/arch/x86/kvm/vmx.c b/arch/x86/kvm/vmx.c
+index 6e28d58..7d03293 100644
+--- a/arch/x86/kvm/vmx.c
++++ b/arch/x86/kvm/vmx.c
+@@ -3750,6 +3750,7 @@ static int vmx_vcpu_setup(struct vcpu_vmx *vmx)
+
+        if (ple_gap) {
+                vmcs_write32(PLE_GAP, ple_gap);
++               printk(KERN_INFO "ple_gap!=0: ple is enabled.");
+                vmcs_write32(PLE_WINDOW, ple_window);
+        }
+
+@@ -4903,6 +4904,8 @@ static int handle_pause(struct kvm_vcpu *vcpu)
+        skip_emulated_instruction(vcpu);
+        kvm_vcpu_on_spin(vcpu);
+
++       printk(KERN_INFO "handle_pause:---pause is handled.---");
++
+        return 1;
+ }
