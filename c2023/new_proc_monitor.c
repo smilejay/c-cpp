@@ -75,6 +75,24 @@ static int set_proc_ev_listen(int nl_sock, bool enable)
 }
 
 /*
+ * get output by reading a file
+ */
+static int read_output(char *out, char *filepath)
+{
+    FILE *fp;
+    int buf_size = 256;
+    fp = fopen(filepath, "r");
+    if (fp == NULL) {
+        printf("Error opening file.");
+        out = "";
+        return 1;
+    }
+    fgets(out, buf_size, fp);
+    fclose(fp);
+    return 0;
+}
+
+/*
  * handle a single process event
  */
 static volatile bool need_exit = false;
@@ -88,6 +106,9 @@ static int handle_proc_ev(int nl_sock)
             struct proc_event proc_ev;
         };
     } nlcn_msg;
+
+    char buf[256];
+    char filename[256];
 
     while (!need_exit) {
         rc = recv(nl_sock, &nlcn_msg, sizeof(nlcn_msg), 0);
@@ -104,16 +125,24 @@ static int handle_proc_ev(int nl_sock)
                 printf("set mcast listen ok\n");
                 break;
             case PROC_EVENT_FORK:
-                printf("fork: parent tid=%d pid=%d -> child tid=%d pid=%d\n",
+                sprintf(filename, "/proc/%d/cmdline\0",
+                        nlcn_msg.proc_ev.event_data.fork.child_pid);
+                read_output(buf, filename);
+                printf("fork: parent tid=%d pid=%d -> child tid=%d pid=%d cmd:%s\n",
                         nlcn_msg.proc_ev.event_data.fork.parent_pid,
                         nlcn_msg.proc_ev.event_data.fork.parent_tgid,
                         nlcn_msg.proc_ev.event_data.fork.child_pid,
-                        nlcn_msg.proc_ev.event_data.fork.child_tgid);
+                        nlcn_msg.proc_ev.event_data.fork.child_tgid,
+                        buf);
                 break;
             case PROC_EVENT_EXEC:
-                printf("exec: tid=%d pid=%d\n",
+                sprintf(filename, "/proc/%d/cmdline\0",
+                        nlcn_msg.proc_ev.event_data.exec.process_pid);
+                read_output(buf, filename);
+                printf("exec: tid=%d pid=%d cmd:%s\n",
                         nlcn_msg.proc_ev.event_data.exec.process_pid,
-                        nlcn_msg.proc_ev.event_data.exec.process_tgid);
+                        nlcn_msg.proc_ev.event_data.exec.process_tgid,
+                        buf);
                 break;
             /*
             case PROC_EVENT_UID:
@@ -181,3 +210,4 @@ out:
     close(nl_sock);
     exit(rc);
 }
+
